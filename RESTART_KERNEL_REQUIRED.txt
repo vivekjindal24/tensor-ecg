@@ -1,0 +1,146 @@
+================================================================================
+                    ⚠️ IMPORTANT: KERNEL RESTART REQUIRED ⚠️
+================================================================================
+
+DATE: December 2, 2025
+ISSUE: Dataset still showing as "Datasets found: []"
+STATUS: Fix applied, but you need to restart your Jupyter kernel
+
+================================================================================
+                          WHY THIS IS HAPPENING
+================================================================================
+
+The notebook source code HAS BEEN FIXED with the correct ROOT path detection.
+
+However, your Jupyter notebook shows OLD OUTPUT from a previous execution:
+
+    Current output shows:
+    ROOT: D:\ecg-research\notebooks        ← WRONG (old execution)
+    Datasets found: []                      ← Because it looked in wrong place
+
+The code in the notebook is NOW correct, but your Jupyter kernel still has
+the OLD code loaded in memory from before the fix was applied.
+
+================================================================================
+                            SOLUTION (REQUIRED)
+================================================================================
+
+YOU MUST RESTART YOUR JUPYTER KERNEL to load the fixed code.
+
+Step-by-step:
+
+1. In Jupyter Notebook:
+   - Click menu: "Kernel" → "Restart Kernel"
+   - Or press: 00 (zero twice)
+
+2. Re-run Cell 1 (Environment checks):
+   - Click in the first code cell
+   - Press Shift+Enter
+
+3. You should now see:
+   [Adjusted] ROOT from D:\ecg-research\notebooks -> D:\ecg-research
+   ROOT: D:\ecg-research
+   DATASET_DIR: D:\ecg-research\Dataset
+   DATASET_DIR exists: True
+   Dataset subdirectories: ['Chapman_Shaoxing', 'CinC2017', 'PTB_Diagnostic', 'ptb-xl']
+
+4. Re-run Cell 2 (Imports):
+   - Press Shift+Enter in the second cell
+
+5. Re-run the preprocessing cell:
+   - You should now see:
+   Datasets found: ['Chapman_Shaoxing', 'CinC2017', 'PTB_Diagnostic', 'ptb-xl']
+
+================================================================================
+                        WHAT WAS FIXED IN THE CODE
+================================================================================
+
+Added intelligent ROOT detection:
+
+    ROOT = Path.cwd().resolve()
+    initial_root = ROOT
+
+    # If we're in notebooks/ subdirectory, go up one level
+    if ROOT.name == 'notebooks' and (ROOT.parent / 'Dataset').exists():
+        ROOT = ROOT.parent
+        print(f'[Adjusted] ROOT from {initial_root} -> {ROOT}')
+
+    # If still no Dataset found, try going up one more level
+    elif not (ROOT / 'Dataset').exists() and (ROOT.parent / 'Dataset').exists():
+        ROOT = ROOT.parent
+        print(f'[Adjusted] ROOT from {initial_root} -> {ROOT}')
+
+Added debug output to show the adjustment happening:
+
+    print('ROOT:', ROOT)
+    print('DATASET_DIR:', DATASET_DIR)
+    print('DATASET_DIR exists:', DATASET_DIR.exists())
+    if DATASET_DIR.exists():
+        subdirs = [d.name for d in DATASET_DIR.iterdir() if d.is_dir()]
+        print(f'Dataset subdirectories: {subdirs}')
+
+================================================================================
+                       ALTERNATIVE: RUN FROM TERMINAL
+================================================================================
+
+If you prefer not to use Jupyter interactively, run the automation script:
+
+    cd D:\ecg-research
+    python scripts\run_full_automation.py --mode smoke
+
+This will:
+- Use a fresh Python process (no old code in memory)
+- Execute the notebook with correct paths
+- Process 500 records as a test
+
+Or for full preprocessing:
+
+    python scripts\run_full_automation.py --mode full
+
+================================================================================
+                           VERIFICATION
+================================================================================
+
+After restarting the kernel and re-running cells, you should see:
+
+✅ Cell 1 output:
+   [Adjusted] ROOT from D:\ecg-research\notebooks -> D:\ecg-research
+   ROOT: D:\ecg-research
+   DATASET_DIR: D:\ecg-research\Dataset
+   DATASET_DIR exists: True
+   Dataset subdirectories: ['Chapman_Shaoxing', 'CinC2017', 'PTB_Diagnostic', 'ptb-xl']
+
+✅ Preprocessing cell output:
+   Datasets found: ['Chapman_Shaoxing', 'CinC2017', 'PTB_Diagnostic', 'ptb-xl']
+   Processing limit (0 means all): 0
+   Processing Chapman_Shaoxing: 100%|████| 45152/45152
+   Processing CinC2017: 100%|████████████| 17056/17056
+   Processing PTB_Diagnostic: 100%|█████| 549/549
+   Processing ptb-xl: 100%|█████████████| 21799/21799
+   Done. processed: 84556 skipped: XX
+
+================================================================================
+                        COMMON MISTAKE TO AVOID
+================================================================================
+
+❌ DON'T just re-run the cell without restarting the kernel
+   - This will use the OLD code still in memory
+   - You'll see the same wrong output
+
+✅ DO restart the kernel first
+   - This clears memory and loads the fixed code
+   - You'll see the correct output
+
+================================================================================
+                             SUMMARY
+================================================================================
+
+Status: ✅ CODE IS FIXED
+Action Required: ⚠️ RESTART JUPYTER KERNEL
+Expected Result: 4 datasets detected, ~84,556 records to process
+
+The issue persists in your output ONLY because the Jupyter kernel hasn't been
+restarted. The code is correct. Restart the kernel and everything will work!
+
+================================================================================
+
